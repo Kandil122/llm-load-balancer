@@ -17,21 +17,23 @@ bash setup_project.sh
 cd distributed-llm-load-balancer
 ```
 
-## Step 2 — Install uv and sync dependencies
+## Step 2 — Create a virtual environment and install Phase 1 dependencies
 
 ```bash
-# Install uv if not already installed
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source ~/.bashrc
+# Create and activate a normal Python virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-# Install all dependencies from pyproject.toml
-uv sync
+# Upgrade pip
+python -m pip install --upgrade pip
+
+# Install only the dependencies needed for Phase 1
+python -m pip install -r requirements-phase1.txt
 ```
 
 Expected output:
 ```
-Resolved X packages in Xs
-Installed X packages in Xs
+Successfully installed ...
 ```
 
 ## Step 3 — Verify Ollama is running with llama3.2:1b
@@ -104,7 +106,7 @@ class Settings(BaseSettings):
 ### Test 1 — Import models with no errors
 
 ```bash
-uv run python -c "
+python -c "
 from common.models import Request, Response, WorkerStatus
 import time
 
@@ -143,7 +145,7 @@ WorkerStatus load_score: 0.0
 ### Test 2 — Config loads from .env
 
 ```bash
-uv run python -c "
+python -c "
 from common.config import config
 print(f'Ollama URL   : {config.ollama_base_url}')
 print(f'Model        : {config.ollama_model}')
@@ -172,7 +174,7 @@ Fault Sim    : True
 ### Test 3 — Ollama API reachable
 
 ```bash
-uv run python -c "
+python -c "
 import asyncio
 import aiohttp
 
@@ -199,7 +201,8 @@ asyncio.run(check_ollama())
 
 ## ✅ Phase 1 Complete Checklist
 
-- [ ] `uv sync` ran with no errors
+- [ ] `.venv` is activated
+- [ ] `python -m pip install -r requirements-phase1.txt` ran with no errors
 - [ ] `common/models.py` imports cleanly
 - [ ] `common/config.py` reads `.env` values correctly
 - [ ] `.env` has `OLLAMA_MODEL=llama3.2:1b`
@@ -212,7 +215,8 @@ asyncio.run(check_ollama())
 
 **`ModuleNotFoundError: pydantic_settings`**
 ```bash
-uv sync  # re-run sync
+source .venv/bin/activate
+python -m pip install -r requirements-phase1.txt
 ```
 
 **`Config shows wrong model name`**

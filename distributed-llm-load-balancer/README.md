@@ -5,18 +5,20 @@ CSE354 Distributed Computing Project — Ain Shams University
 ## Quick Start
 
 ```bash
-# 1. Install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# 1. Create and activate a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-# 2. Install dependencies
-uv sync
+# 2. Install Phase 1 dependencies
+python -m pip install --upgrade pip
+python -m pip install -r requirements-phase1.txt
 
 # 3. Start Ollama
 ollama serve &
 ollama pull llama3.2:1b
 
 # 4. Run
-uv run python main.py --strategy round_robin --users 10 --workers 4
+python main.py --strategy round_robin --users 10 --workers 4
 ```
 
 ## Strategies
@@ -26,5 +28,5 @@ uv run python main.py --strategy round_robin --users 10 --workers 4
 
 ## Testing
 ```bash
-uv run pytest tests/ -v
+pytest tests/ -v
 ```

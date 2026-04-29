@@ -2,7 +2,7 @@
 name = "distributed-llm-load-balancer"
 version = "0.1.0"
 description = "Distributed LLM inference with load balancing, RAG, and fault tolerance"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "chromadb>=0.4.0",
     "sentence-transformers>=2.2.0",

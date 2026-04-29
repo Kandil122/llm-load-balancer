@@ -1030,7 +1030,7 @@ cat > pyproject.toml << 'EOF'
 name = "distributed-llm-load-balancer"
 version = "0.1.0"
 description = "Distributed LLM inference with load balancing, RAG, and fault tolerance"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "chromadb>=0.4.0",
     "sentence-transformers>=2.2.0",
@@ -1047,6 +1047,17 @@ dependencies = [
 asyncio_mode = "auto"
 EOF
 
+# ── requirements-phase1.txt ─────────────────────────────────
+cat > requirements-phase1.txt << 'EOF'
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+aiohttp>=3.9.0
+rich>=13.0.0
+psutil>=5.9.0
+pytest>=7.0.0
+pytest-asyncio>=0.23.0
+EOF
+
 # ── README.md ───────────────────────────────────────────────
 cat > README.md << 'EOF'
 # Distributed LLM Load Balancer
@@ -1056,18 +1067,20 @@ CSE354 Distributed Computing Project — Ain Shams University
 ## Quick Start
 
 ```bash
-# 1. Install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# 1. Create and activate a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-# 2. Install dependencies
-uv sync
+# 2. Install Phase 1 dependencies
+python -m pip install --upgrade pip
+python -m pip install -r requirements-phase1.txt
 
 # 3. Start Ollama
 ollama serve &
 ollama pull llama3.2:1b
 
 # 4. Run
-uv run python main.py --strategy round_robin --users 10 --workers 4
+python main.py --strategy round_robin --users 10 --workers 4
 ```
 
 ## Strategies
@@ -1077,7 +1090,7 @@ uv run python main.py --strategy round_robin --users 10 --workers 4
 
 ## Testing
 ```bash
-uv run pytest tests/ -v
+pytest tests/ -v
 ```
 EOF
 
@@ -1091,8 +1104,9 @@ find . -type f | sort | sed 's|./||' | sed 's|^|   |'
 echo ""
 echo "Next steps:"
 echo "  1. cd $PROJECT_NAME"
-echo "  2. curl -LsSf https://astral.sh/uv/install.sh | sh"
-echo "  3. uv sync"
-echo "  4. ollama serve & (in another terminal)"
-echo "  5. Follow phase guides in order"
+echo "  2. python3 -m venv .venv"
+echo "  3. source .venv/bin/activate"
+echo "  4. python -m pip install -r requirements-phase1.txt"
+echo "  5. ollama serve & (in another terminal)"
+echo "  6. Follow phase guides in order"
 echo ""
