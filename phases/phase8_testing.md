@@ -15,7 +15,7 @@ collecting all numbers for your report, and preparing for the demo video.
 ### Test 1 — Run the complete pytest suite
 
 ```bash
-uv run pytest tests/ -v --tb=short
+python3 -m pytest tests/ -v --tb=short
 ```
 
 Expected output:
@@ -42,7 +42,7 @@ tests/test_rag.py::test_retriever_relevance                       PASSED
 ### Test 2 — Full system smoke test (5 users, no fault)
 
 ```bash
-uv run python main.py --strategy round_robin --users 5 --workers 4 --no-fault
+python3 main.py --strategy round_robin --users 5 --workers 4 --no-fault
 ```
 
 Verify:
@@ -62,7 +62,7 @@ This is the exact sequence to record for your demo video:
 watch -n 1 nvidia-smi
 
 # Terminal 2: Run with fault simulation
-uv run python main.py --strategy least_connections --users 10 --workers 4
+python3 main.py --strategy least_connections --users 10 --workers 4
 ```
 
 Verify in the output:
@@ -83,9 +83,9 @@ Dead Workers : [1]
 
 ```bash
 # Run each and note avg latency + throughput
-uv run python main.py --strategy round_robin       --users 8 --workers 4 --no-fault --save-results
-uv run python main.py --strategy least_connections --users 8 --workers 4 --no-fault --save-results
-uv run python main.py --strategy load_aware        --users 8 --workers 4 --no-fault --save-results
+python3 main.py --strategy round_robin       --users 8 --workers 4 --no-fault --save-results
+python3 main.py --strategy least_connections --users 8 --workers 4 --no-fault --save-results
+python3 main.py --strategy load_aware        --users 8 --workers 4 --no-fault --save-results
 
 # View saved results
 for f in results/*.csv; do echo "=== $f ==="; cat $f; echo; done
@@ -103,13 +103,13 @@ you're testing the distributed system logic, not waiting for real LLM calls:
 echo "LLM_STUB=1" >> .env
 
 # Run large load tests
-LLM_STUB=1 uv run python main.py --strategy round_robin       --users 100 --workers 4 --no-fault --save-results
-LLM_STUB=1 uv run python main.py --strategy least_connections --users 100 --workers 4 --no-fault --save-results
-LLM_STUB=1 uv run python main.py --strategy load_aware        --users 100 --workers 4 --no-fault --save-results
+LLM_STUB=1 python3 main.py --strategy round_robin       --users 100 --workers 4 --no-fault --save-results
+LLM_STUB=1 python3 main.py --strategy least_connections --users 100 --workers 4 --no-fault --save-results
+LLM_STUB=1 python3 main.py --strategy load_aware        --users 100 --workers 4 --no-fault --save-results
 
-LLM_STUB=1 uv run python main.py --strategy round_robin       --users 500 --workers 4 --no-fault --save-results
-LLM_STUB=1 uv run python main.py --strategy least_connections --users 500 --workers 4 --no-fault --save-results
-LLM_STUB=1 uv run python main.py --strategy load_aware        --users 500 --workers 4 --no-fault --save-results
+LLM_STUB=1 python3 main.py --strategy round_robin       --users 500 --workers 4 --no-fault --save-results
+LLM_STUB=1 python3 main.py --strategy least_connections --users 500 --workers 4 --no-fault --save-results
+LLM_STUB=1 python3 main.py --strategy load_aware        --users 500 --workers 4 --no-fault --save-results
 
 # Remove stub mode after
 sed -i '/LLM_STUB/d' .env
@@ -130,7 +130,7 @@ nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used,temperature.gpu \
            --format=csv --loop=2 > results/gpu_log.csv &
 GPU_PID=$!
 
-uv run python main.py --strategy round_robin --users 5 --workers 4 --no-fault
+python3 main.py --strategy round_robin --users 5 --workers 4 --no-fault
 
 kill $GPU_PID
 echo ""
@@ -219,7 +219,7 @@ nvidia-smi
 
 **Scene 2 — RAG pipeline demo (45s)**
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from rag.retriever import retrieve_context
 from llm.inference import run_llm
@@ -240,20 +240,20 @@ asyncio.run(demo())
 ```bash
 # Split screen: nvidia-smi on left, this on right
 watch -n 1 nvidia-smi &
-uv run python main.py --strategy round_robin --users 8 --workers 4 --no-fault
+python3 main.py --strategy round_robin --users 8 --workers 4 --no-fault
 ```
 
 **Scene 4 — Strategy comparison (1min)**
 ```bash
-uv run python main.py --strategy round_robin       --users 5 --workers 4 --no-fault
-uv run python main.py --strategy least_connections --users 5 --workers 4 --no-fault
-uv run python main.py --strategy load_aware        --users 5 --workers 4 --no-fault
+python3 main.py --strategy round_robin       --users 5 --workers 4 --no-fault
+python3 main.py --strategy least_connections --users 5 --workers 4 --no-fault
+python3 main.py --strategy load_aware        --users 5 --workers 4 --no-fault
 # Point out latency differences between strategies
 ```
 
 **Scene 5 — Fault tolerance live kill (2min)**
 ```bash
-uv run python main.py --strategy least_connections --users 10 --workers 4
+python3 main.py --strategy least_connections --users 10 --workers 4
 # Wait for 💀 Worker 1 SIMULATED FAILURE message
 # Show zero failed requests in summary
 ```
@@ -309,7 +309,7 @@ cat results/round_robin_8users_4workers.csv
 **Some pytest tests fail after code changes**
 Run with `-s` to see print output:
 ```bash
-uv run pytest tests/ -v -s
+python3 -m pytest tests/ -v -s
 ```
 
 **GPU utilization stays at 0% during inference**

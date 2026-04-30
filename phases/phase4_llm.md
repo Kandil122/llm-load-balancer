@@ -59,7 +59,7 @@ This is what you'll record for your report and show in the demo video.
 ### Test 1 — Single LLM call (no RAG)
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 import time
 from llm.inference import run_llm
@@ -104,7 +104,7 @@ Response (3.42s):
 ### Test 2 — Full RAG → LLM pipeline (end to end)
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 import time
 from rag.retriever import retrieve_context
@@ -143,7 +143,7 @@ asyncio.run(test())
 ### Test 3 — Measure real latency
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 import time
 from llm.inference import run_llm
@@ -184,7 +184,7 @@ asyncio.run(test())
 ### Test 4 — Worker uses LLM correctly
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from common.models import Request
@@ -220,7 +220,7 @@ asyncio.run(test())
 ### Test 5 — Two workers in parallel
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 import time
 from workers.gpu_worker import GPUWorker
@@ -273,7 +273,7 @@ nvidia-smi --query-gpu=utilization.gpu,memory.used,temperature.gpu \
            --format=csv --loop=1 > gpu_log.csv &
 
 # Run a test
-uv run python -c "
+python3 -c "
 import asyncio
 from llm.inference import run_llm
 from rag.retriever import retrieve_context

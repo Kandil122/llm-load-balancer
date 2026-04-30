@@ -56,7 +56,7 @@ These run concurrently via asyncio — the heartbeat never blocks request handli
 ### Test 1 — Scheduler dispatches a request successfully
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -98,7 +98,7 @@ asyncio.run(test())
 ### Test 2 — Dead worker is skipped, request still completes
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -141,7 +141,7 @@ asyncio.run(test())
 ### Test 3 — All workers dead returns failure gracefully
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -181,7 +181,7 @@ asyncio.run(test())
 ### Test 4 — Heartbeat detects dead worker
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -232,7 +232,7 @@ Dead workers in metrics: [1]
 This is the key test — the one to show in your demo video.
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.least_connections import LeastConnectionsBalancer
@@ -305,7 +305,7 @@ Results:
 ### Test 6 — Run pytest for fault tolerance
 
 ```bash
-uv run pytest tests/test_fault_tolerance.py -v
+python3 -m pytest tests/test_fault_tolerance.py -v
 ```
 
 Expected output:
@@ -322,7 +322,7 @@ PASSED tests/test_fault_tolerance.py::test_metrics_collector_records_correctly
 ### Test 7 — Worker revive (bonus)
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer

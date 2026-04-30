@@ -54,7 +54,7 @@ You will see a progress bar — this is normal.
 ### Test 1 — Index the knowledge base
 
 ```bash
-uv run python -c "
+python3 -c "
 from rag.indexer import get_collection
 
 print('Initializing ChromaDB and indexing documents...')
@@ -91,8 +91,8 @@ Documents in ChromaDB: 30
 
 ```bash
 # Run twice — second run should NOT re-index
-uv run python -c "from rag.indexer import get_collection; get_collection()"
-uv run python -c "from rag.indexer import get_collection; get_collection()"
+python3 -c "from rag.indexer import get_collection; get_collection()"
+python3 -c "from rag.indexer import get_collection; get_collection()"
 ```
 
 Second run should print:
@@ -109,7 +109,7 @@ Not:
 ### Test 3 — Retriever returns relevant context
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from rag.retriever import retrieve_context
 
@@ -149,7 +149,7 @@ Retrieved context:
 ### Test 4 — Retriever is topic-aware
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from rag.retriever import retrieve_context
 
@@ -182,7 +182,7 @@ Expected output:
 ### Test 5 — Retriever is non-blocking (runs in thread pool)
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 import time
 from rag.retriever import retrieve_context
@@ -225,7 +225,7 @@ All returned context: True
 ### Test 6 — Run pytest for RAG
 
 ```bash
-uv run pytest tests/test_rag.py -v
+python3 -m pytest tests/test_rag.py -v
 ```
 
 Expected output:
@@ -242,7 +242,7 @@ PASSED tests/test_rag.py::test_retriever_relevance
 ### Test 7 — Full RAG pipeline output inspection
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from rag.retriever import retrieve_context
 
@@ -290,7 +290,7 @@ This is a one-time 90MB download. Run Test 1 and wait — it caches after.
 If you see a duplicate ID error, delete and recreate the DB:
 ```bash
 rm -rf chroma_db/
-uv run python -c "from rag.indexer import get_collection; get_collection()"
+python3 -c "from rag.indexer import get_collection; get_collection()"
 ```
 
 **Context not relevant to query**

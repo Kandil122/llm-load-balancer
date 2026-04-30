@@ -37,7 +37,7 @@ This distinction is worth a paragraph in your report.
 ### Test 1 — Load generator with 5 users (smoke test)
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -80,7 +80,7 @@ asyncio.run(test())
 ### Test 2 — Verify requests distributed across workers
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -130,7 +130,7 @@ asyncio.run(test())
 
 ```bash
 # Start with small user count first (real LLM calls are slow)
-uv run python main.py --strategy round_robin --users 5 --workers 3 --no-fault
+python3 main.py --strategy round_robin --users 5 --workers 3 --no-fault
 ```
 
 Expected output:
@@ -173,7 +173,7 @@ for strategy in round_robin least_connections load_aware; do
     echo "==============================="
     echo "Strategy: $strategy"
     echo "==============================="
-    uv run python main.py --strategy $strategy --users 5 --workers 3 --no-fault
+    python3 main.py --strategy $strategy --users 5 --workers 3 --no-fault
     echo ""
     sleep 2
 done
@@ -188,7 +188,7 @@ Record the avg latency and throughput for each strategy — this is your report 
 ```bash
 # Run WITH fault simulation enabled (worker 1 dies after 50 requests)
 # Use enough users that worker 1 actually hits the limit
-uv run python main.py --strategy round_robin --users 10 --workers 3
+python3 main.py --strategy round_robin --users 10 --workers 3
 ```
 
 Watch for:
@@ -208,7 +208,7 @@ Failed            0        ← zero dropped despite worker death
 ### Test 6 — Save results to CSV
 
 ```bash
-uv run python main.py --strategy round_robin --users 5 --workers 4 \
+python3 main.py --strategy round_robin --users 5 --workers 4 \
     --no-fault --save-results
 
 ls results/
@@ -233,7 +233,7 @@ dead_workers,[]
 ### Test 7 — Help text works
 
 ```bash
-uv run python main.py --help
+python3 main.py --help
 ```
 
 Expected output:
@@ -267,7 +267,7 @@ WORKERS=4
 for STRATEGY in round_robin least_connections load_aware; do
     for USERS in 5 10 20; do
         echo "Running: strategy=$STRATEGY users=$USERS workers=$WORKERS"
-        uv run python main.py \
+        python3 main.py \
             --strategy $STRATEGY \
             --users $USERS \
             --workers $WORKERS \
@@ -315,7 +315,7 @@ if os.getenv("LLM_STUB") == "1":
 
 Then test:
 ```bash
-LLM_STUB=1 uv run python main.py --strategy round_robin --users 100 --workers 4
+LLM_STUB=1 python3 main.py --strategy round_robin --users 100 --workers 4
 ```
 
 **`asyncio.gather` returns exceptions as values**

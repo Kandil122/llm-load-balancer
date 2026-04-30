@@ -36,7 +36,7 @@ Completed: 87  Failed: 0  Avg: 3.27s  P95: 4.1s  RPS: 2.3
 ### Test 1 — MetricsCollector basic operations
 
 ```bash
-uv run python -c "
+python3 -c "
 from metrics.collector import MetricsCollector
 
 collector = MetricsCollector(num_workers=4)
@@ -93,7 +93,7 @@ Full summary:
 ### Test 2 — Thread-safety under concurrent writes
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 import threading
 from metrics.collector import MetricsCollector
@@ -123,7 +123,7 @@ print('✅ Thread-safe: no race conditions under 100 concurrent writes')
 ### Test 3 — GPU stats function
 
 ```bash
-uv run python -c "
+python3 -c "
 from metrics.dashboard import get_gpu_stats
 import psutil
 
@@ -152,7 +152,7 @@ RAM: 8GB used / 16GB total
 ### Test 4 — Dashboard table renders correctly
 
 ```bash
-uv run python -c "
+python3 -c "
 from workers.gpu_worker import GPUWorker
 from metrics.collector import MetricsCollector
 from metrics.dashboard import build_table, print_summary
@@ -197,7 +197,7 @@ print('✅ Dashboard table renders correctly')
 ### Test 5 — Full summary output
 
 ```bash
-uv run python -c "
+python3 -c "
 from workers.gpu_worker import GPUWorker
 from metrics.collector import MetricsCollector
 from metrics.dashboard import print_summary
@@ -228,7 +228,7 @@ print_summary(workers, collector, 'round_robin')
 ### Test 6 — P95 latency calculation is correct
 
 ```bash
-uv run python -c "
+python3 -c "
 from metrics.collector import MetricsCollector
 
 collector = MetricsCollector(num_workers=2)
@@ -285,7 +285,7 @@ in `metrics/collector.py`. Check the `_lock` is used in every write method.
 **Rich rendering issues in terminal**
 ```bash
 # If colors look wrong, force rich to use basic mode:
-TERM=xterm-256color uv run python -c "..."
+TERM=xterm-256color python3 -c "..."
 ```
 
 ---

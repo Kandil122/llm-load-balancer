@@ -62,7 +62,7 @@ class LoadAwareBalancer(LoadBalancer): ...
 ### Test 1 — Workers instantiate correctly
 
 ```bash
-uv run python -c "
+python3 -c "
 from workers.gpu_worker import GPUWorker
 
 workers = [GPUWorker(i) for i in range(4)]
@@ -91,7 +91,7 @@ Worker 3: alive=True, connections=0, processed=0
 ### Test 2 — Round Robin distributes evenly
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -127,7 +127,7 @@ Round Robin sequence (8 requests, 4 workers):
 ### Test 3 — Round Robin skips dead workers
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -159,7 +159,7 @@ asyncio.run(test())
 ### Test 4 — Least Connections picks lowest
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.least_connections import LeastConnectionsBalancer
@@ -191,7 +191,7 @@ asyncio.run(test())
 ### Test 5 — Load Aware picks by score
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.load_aware import LoadAwareBalancer
@@ -230,7 +230,7 @@ asyncio.run(test())
 ### Test 6 — All workers dead returns None
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -257,8 +257,7 @@ asyncio.run(test())
 ### Test 7 — Run pytest for load balancer
 
 ```bash
-uv run pytest tests/test_load_balancer.py -v
-```
+python3 -m pytest tests/test_load_balancer.py -v```
 
 Expected output:
 ```
@@ -276,7 +275,7 @@ PASSED tests/test_load_balancer.py::test_all_dead_returns_none
 ### Test 8 — Compare strategies side by side
 
 ```bash
-uv run python -c "
+python3 -c "
 import asyncio
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer

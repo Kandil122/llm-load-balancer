@@ -37,7 +37,6 @@
 
 | Component | Tool | Why |
 |---|---|---|
-| Package manager | **uv** | Fastest, modern, handles venvs automatically |
 | Local LLM Runner | **Ollama** | Runs LLMs locally, REST API at `localhost:11434` |
 | LLM Model | **llama3.2:1b** | Fits in 4GB VRAM, fast enough for demo |
 | GPU Monitoring | **gputil + psutil** | Real hardware utilization metrics |
