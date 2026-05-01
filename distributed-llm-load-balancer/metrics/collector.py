@@ -1,6 +1,7 @@
 # metrics/collector.py
 import time
 import threading
+import math
 from typing import Dict, List
 
 
@@ -61,9 +62,17 @@ class MetricsCollector:
     def p95_latency(self) -> float:
         if not self.latencies:
             return 0.0
+
         sorted_l = sorted(self.latencies)
-        idx = int(len(sorted_l) * 0.95)
-        return sorted_l[min(idx, len(sorted_l) - 1)]
+
+        # Correct percentile calculation:
+        # index = ceil(p * N) - 1
+        idx = math.ceil(len(sorted_l) * 0.95) - 1
+
+        # Clamp index safely
+        idx = min(max(idx, 0), len(sorted_l) - 1)
+
+        return sorted_l[idx]
 
     @property
     def throughput(self) -> float:
