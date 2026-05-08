@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc curl && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml .
+RUN pip install --no-cache-dir \
+    fastapi uvicorn[standard] aiohttp \
+    pydantic-settings psutil rich
+
+COPY . .
+
+ENV NUM_WORKERS=4
+ENV LB_STRATEGY=round_robin
+
+EXPOSE 8000
+CMD ["uvicorn", "master.app:app", "--host", "0.0.0.0", "--port", "8000"]
