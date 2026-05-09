@@ -15,7 +15,7 @@ python -m pip install -r requirements-phase1.txt
 
 # 3. Start Ollama
 ollama serve &
-ollama pull llama3.2:1b
+ollama pull gemma3:270m
 
 # 4. Run
 python main.py --strategy round_robin --users 10 --workers 4

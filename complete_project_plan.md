@@ -5,7 +5,7 @@
 ---
 
 > **Project Title:** Efficient Load Balancing and GPU Cluster Task Distribution for Handling 1000+ Concurrent LLM Requests
-> **Model:** llama3.2:1b via Ollama (local, no API key)
+> **Model:** gemma3:270m via Ollama (local, no API key)
 > **Hardware:** NVIDIA GeForce GTX 960M 4GB · i7-4720HQ · 16GB RAM · Linux
 
 ---
@@ -38,7 +38,7 @@
 | Component | Tool | Why |
 |---|---|---|
 | Local LLM Runner | **Ollama** | Runs LLMs locally, REST API at `localhost:11434` |
-| LLM Model | **llama3.2:1b** | Fits in 4GB VRAM, fast enough for demo |
+| LLM Model | **gemma3:270m** | Fits in 4GB VRAM, fast enough for demo |
 | GPU Monitoring | **gputil + psutil** | Real hardware utilization metrics |
 | RAG Vector DB | **ChromaDB** | Lightweight, runs locally, no server needed |
 | Embeddings | **sentence-transformers** | Free, local, `all-MiniLM-L6-v2` model |
@@ -69,7 +69,7 @@ nvidia-smi
 ```
 
 ### Why this hardware is sufficient
-- `llama3.2:1b` needs ~1.3GB VRAM — fits in 4GB with 2.7GB to spare
+- `gemma3:270m` needs ~1.3GB VRAM — fits in 4GB with 2.7GB to spare
 - CUDA 13.0 means Ollama detects GPU automatically, no configuration needed
 - 16GB RAM handles ChromaDB + sentence-transformers + Python runtime comfortably
 - Real GPU utilization (60–90% during inference) is visible in `nvidia-smi`
@@ -189,7 +189,7 @@ distributed-llm-load-balancer/
                           │ query + context
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                LOCAL LLM — Ollama + llama3.2:1b                 │
+│                LOCAL LLM — Ollama + gemma3:270m                 │
 │   • Endpoint: http://localhost:11434/api/generate               │
 │   • Model loaded into GTX 960M VRAM (4GB)                       │
 │   • Real GPU inference — 2–8s per response                      │
@@ -257,7 +257,7 @@ Answer in 2-3 sentences:
 ```
 
 **Step 7 — Ollama generates the response**
-Async HTTP POST to `localhost:11434/api/generate`. llama3.2:1b runs
+Async HTTP POST to `localhost:11434/api/generate`. gemma3:270m runs
 on the GTX 960M GPU. Real inference: 2–8 seconds. GPU-Util: 60–90%.
 
 **Step 8 — Worker decrements active_connections**
@@ -286,9 +286,9 @@ source ~/.bashrc
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-### Step 3 — Pull llama3.2:1b
+### Step 3 — Pull gemma3:270m
 ```bash
-ollama pull llama3.2:1b
+ollama pull gemma3:270m
 # Downloads ~1.3GB — one time only
 ```
 
@@ -315,7 +315,7 @@ uv sync
 cat .env
 # Should contain:
 # OLLAMA_BASE_URL=http://localhost:11434
-# OLLAMA_MODEL=llama3.2:1b
+# OLLAMA_MODEL=gemma3:270m
 # NUM_WORKERS=4
 # NUM_USERS=20
 # LB_STRATEGY=round_robin
@@ -376,7 +376,7 @@ class WorkerStatus:
 ```python
 class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2:1b"
+    ollama_model: str = "gemma3:270m"
     num_workers: int = 4
     num_users: int = 20
     lb_strategy: str = "round_robin"
@@ -401,7 +401,7 @@ print('✅ Models OK')
 uv run python -c "
 from common.config import config
 print(f'Model: {config.ollama_model}')
-assert config.ollama_model == 'llama3.2:1b'
+assert config.ollama_model == 'gemma3:270m'
 print('✅ Config OK')
 "
 
@@ -422,7 +422,7 @@ asyncio.run(check())
 ### ✅ Phase 1 Checklist
 - [ ] `uv sync` completes with no errors
 - [ ] Models import and work correctly
-- [ ] Config loads `llama3.2:1b` from `.env`
+- [ ] Config loads `gemma3:270m` from `.env`
 - [ ] Ollama is running and reachable at `localhost:11434`
 
 ---
@@ -641,7 +641,7 @@ Question: {query}
 Answer in 2-3 sentences:"""
 
     payload = {
-        "model": "llama3.2:1b",
+        "model": "gemma3:270m",
         "prompt": prompt,
         "stream": False,
         "options": {
@@ -1144,7 +1144,7 @@ guarantees atomic writes and prevents race conditions in the counters.
 
 - Single GPU means workers share hardware — true parallelism is limited by
   the GPU being saturated. In production each worker would have a dedicated GPU.
-- llama3.2:1b is a small model — response quality is limited. A production
+- gemma3:270m is a small model — response quality is limited. A production
   system would use 7B+ parameter models on multi-GPU nodes.
 - Fault tolerance simulates failures via a software flag, not actual process
   crashes or network partitions.
@@ -1171,7 +1171,7 @@ distributed-llm-load-balancer
 
 **Description:**
 ```
-Distributed system for handling 1000+ concurrent LLM requests using llama3.2:1b
+Distributed system for handling 1000+ concurrent LLM requests using gemma3:270m
 via Ollama, with async load balancing (Round Robin, Least Connections, Load-Aware),
 RAG pipeline via ChromaDB, and fault-tolerant GPU worker simulation.
 Built with Python asyncio & uv. CSE354 — Ain Shams University.

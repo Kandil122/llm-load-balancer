@@ -47,7 +47,7 @@ python3 main.py --strategy round_robin --users 5 --workers 4 --no-fault
 
 Verify:
 - All 5 requests complete successfully
-- Each response contains real text from llama3.2:1b
+- Each response contains real text from gemma3:270m
 - Latency numbers are shown
 - No errors or tracebacks
 
@@ -211,7 +211,7 @@ Record in this order — total should be 5–8 minutes:
 ```bash
 # Show Ollama running
 ollama list
-ollama ps   # shows llama3.2:1b loaded
+ollama ps   # shows gemma3:270m loaded
 
 # Show nvidia-smi idle
 nvidia-smi
@@ -295,7 +295,7 @@ cat results/round_robin_8users_4workers.csv
 - [ ] References (include the GitHub repos from research)
 
 ### Demo Video
-- [ ] Shows Ollama + llama3.2:1b running locally
+- [ ] Shows Ollama + gemma3:270m running locally
 - [ ] Shows real GPU utilization in nvidia-smi
 - [ ] Shows all 3 load balancing strategies
 - [ ] Shows fault tolerance (worker dies, zero dropped requests)
@@ -316,7 +316,7 @@ python3 -m pytest tests/ -v -s
 Ollama may have fallen back to CPU. Fix:
 ```bash
 # Check Ollama GPU detection
-OLLAMA_DEBUG=1 ollama run llama3.2:1b "hi" 2>&1 | grep -i gpu
+OLLAMA_DEBUG=1 ollama run gemma3:270m "hi" 2>&1 | grep -i gpu
 ```
 
 **Demo video: terminal font too small**
@@ -333,7 +333,7 @@ OLLAMA_DEBUG=1 ollama run llama3.2:1b "hi" 2>&1 | grep -i gpu
 ✅ Phase 1 — Foundation (models + config)
 ✅ Phase 2 — Workers + Load Balancer (3 strategies)
 ✅ Phase 3 — RAG Pipeline (ChromaDB + embeddings)
-✅ Phase 4 — LLM Integration (llama3.2:1b via Ollama)
+✅ Phase 4 — LLM Integration (gemma3:270m via Ollama)
 ✅ Phase 5 — Metrics & Dashboard (rich live UI)
 ✅ Phase 6 — Fault Tolerance (heartbeat + retry)
 ✅ Phase 7 — Load Generator (asyncio.gather)

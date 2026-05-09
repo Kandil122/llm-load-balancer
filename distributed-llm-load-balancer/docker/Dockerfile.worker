@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc curl && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml .
+RUN pip install --no-cache-dir \
+    fastapi uvicorn[standard] aiohttp \
+    chromadb sentence-transformers \
+    pydantic-settings psutil
+
+COPY . .
+
+# WORKER_ID injected by docker-compose per service
+ENV WORKER_ID=0
+ENV OLLAMA_BASE_URL=http://host.docker.internal:11434
+
+# Port is computed: 8001 + WORKER_ID
+CMD ["sh", "-c", "uvicorn worker.app:app --host 0.0.0.0 --port $((8001 + WORKER_ID))"]

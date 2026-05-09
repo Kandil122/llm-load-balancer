@@ -39,7 +39,7 @@ DOCUMENTS = [
     "P95 latency means 95% of requests complete within that time — a key performance metric.",
     "The GIL (Global Interpreter Lock) in Python prevents true parallel CPU-bound threading.",
     "Ollama is a tool for running large language models locally on your own hardware.",
-    "llama3.2 is a compact but capable LLM model from Meta that runs efficiently on consumer hardware.",
+    "gemma3 is a compact but capable LLM model from Google that runs efficiently on consumer hardware.",
     "Node failure detection can be implemented using periodic health checks or heartbeat signals.",
     "Load-aware routing selects workers based on both current load and historical response times.",
     "A semaphore limits the number of concurrent operations to prevent resource exhaustion.",

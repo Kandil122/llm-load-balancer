@@ -32,34 +32,61 @@ def get_gpu_stats() -> str:
     return "GPU: N/A (nvidia-smi not available)"
 
 
-def build_table(workers: List[GPUWorker], collector: MetricsCollector,
-                strategy: str) -> Table:
-    table = Table(box=box.ROUNDED, title=f"[bold cyan]DISTRIBUTED LLM SYSTEM[/bold cyan]",
-                  title_justify="center")
+def build_table(workers: List[GPUWorker], collector: MetricsCollector = None,
+                strategy: str = "", status_data: List[dict] = None, mode: str = "SIMULATION",
+                current_counts: dict = None) -> Table:
+    title = f"[bold cyan]DISTRIBUTED LLM SYSTEM ({mode})[/bold cyan]"
+    table = Table(box=box.ROUNDED, title=title, title_justify="center")
 
     table.add_column("Worker", style="bold")
     table.add_column("Status")
     table.add_column("Active Conn", justify="center")
+    table.add_column("Current", justify="center", style="cyan") # NEW COLUMN
     table.add_column("Processed", justify="center")
     table.add_column("Avg Latency", justify="center")
     table.add_column("Failed", justify="center")
 
-    for w in workers:
-        status = "[green]🟢 alive[/green]" if w.status.is_alive else "[red]🔴 dead[/red]"
-        table.add_row(
-            f"Worker-{w.id}",
-            status,
-            str(w.status.active_connections),
-            str(w.status.total_processed),
-            f"{w.status.avg_latency:.2f}s",
-            str(w.status.total_failed),
-        )
+    counts = current_counts or {}
+
+    if status_data:
+        # Distributed/Hybrid Mode
+        for d in status_data:
+            if "error" in d:
+                table.add_row(d["url"].split("/")[-1], "[red]🔴 unreachable[/red]", "-", "-", "-", "-", "-")
+                continue
+            
+            w_id = d.get('worker_id')
+            status = "[green]🟢 alive[/green]" if d.get("is_alive") else "[red]🔴 dead[/red]"
+            table.add_row(
+                f"Worker-{w_id}",
+                status,
+                str(d.get("active_connections", 0)),
+                str(counts.get(w_id, 0)), # Display current run count
+                str(d.get("total_processed", 0)),
+                f"{d.get('avg_latency', 0):.2f}s",
+                str(d.get("total_failed", 0)),
+            )
+    else:
+        # Simulation Mode
+        for w in workers:
+            status = "[green]🟢 alive[/green]" if w.status.is_alive else "[red]🔴 dead[/red]"
+            table.add_row(
+                f"Worker-{w.id}",
+                status,
+                str(w.status.active_connections),
+                str(counts.get(w.id, 0)),
+                str(w.status.total_processed),
+                f"{w.status.avg_latency:.2f}s",
+                str(w.status.total_failed),
+            )
 
     return table
 
 
 def print_summary(workers: List[GPUWorker], collector: MetricsCollector, strategy: str):
     """Print final summary after load test completes."""
+    if workers is None:
+        workers = []
     summary = collector.get_summary()
 
     console.print("\n")

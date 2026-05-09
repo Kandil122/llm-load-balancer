@@ -1,0 +1,15 @@
+
+# VSCode temporary files
+.vscode/.fuse_hidden*
+.vscode/*.db
+.vscode/*.db-*
+
+# ChromaDB database files
+chroma_db/
+
+# Results CSV files
+results/
+
+# Large binary files
+*.bin
+*.sqlite3
