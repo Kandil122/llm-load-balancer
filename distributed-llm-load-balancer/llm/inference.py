@@ -7,7 +7,7 @@ from common.config import config
 async def run_llm(query: str, context: str) -> str:
     """
     Send a prompt to Ollama's local REST API and return the response.
-    Model: llama3.2:1b running at localhost:11434
+    Model: gemma3:270m running at localhost:11434
     """
     prompt = f"""You are a helpful assistant. Use the context below to answer concisely.
 

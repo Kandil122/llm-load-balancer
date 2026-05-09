@@ -6,7 +6,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     # Ollama
     ollama_base_url: str = Field(default="http://localhost:11434")
-    ollama_model: str = Field(default="llama3.2:1b")
+    ollama_model: str = Field(default="gemma3:270m")
 
     # System
     num_workers: int = Field(default=4)

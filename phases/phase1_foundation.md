@@ -36,7 +36,7 @@ Expected output:
 Successfully installed ...
 ```
 
-## Step 3 — Verify Ollama is running with llama3.2:1b
+## Step 3 — Verify Ollama is running with gemma3:270m
 
 ```bash
 # Terminal 1 — leave this open the whole project
@@ -49,12 +49,12 @@ ollama list
 Expected output:
 ```
 NAME            ID              SIZE    MODIFIED
-llama3.2:1b     ...             1.3 GB  ...
+gemma3:270m     ...             1.3 GB  ...
 ```
 
-If llama3.2:1b is not listed:
+If gemma3:270m is not listed:
 ```bash
-ollama pull llama3.2:1b
+ollama pull gemma3:270m
 ```
 
 ---
@@ -93,7 +93,7 @@ Open `common/config.py` and confirm it reads from `.env`:
 ```python
 class Settings(BaseSettings):
     ollama_base_url: str
-    ollama_model: str       # should be "llama3.2:1b"
+    ollama_model: str       # should be "gemma3:270m"
     num_workers: int
     num_users: int
     ...
@@ -161,7 +161,7 @@ print('✅ Config loaded from .env correctly')
 Expected output:
 ```
 Ollama URL   : http://localhost:11434
-Model        : llama3.2:1b
+Model        : gemma3:270m
 Num Workers  : 4
 Num Users    : 20
 LB Strategy  : round_robin
@@ -185,10 +185,10 @@ async def check_ollama():
                 data = await r.json()
                 models = [m['name'] for m in data.get('models', [])]
                 print(f'Ollama is running. Available models: {models}')
-                if any('llama3.2' in m for m in models):
-                    print('✅ llama3.2:1b is available')
+                if any('gemma3' in m for m in models):
+                    print('✅ gemma3:270m is available')
                 else:
-                    print('❌ llama3.2:1b not found — run: ollama pull llama3.2:1b')
+                    print('❌ gemma3:270m not found — run: ollama pull gemma3:270m')
     except Exception as e:
         print(f'❌ Ollama not reachable: {e}')
         print('   Make sure ollama serve is running in another terminal')
@@ -205,8 +205,8 @@ asyncio.run(check_ollama())
 - [ ] `python -m pip install -r requirements-phase1.txt` ran with no errors
 - [ ] `common/models.py` imports cleanly
 - [ ] `common/config.py` reads `.env` values correctly
-- [ ] `.env` has `OLLAMA_MODEL=llama3.2:1b`
-- [ ] Ollama is running and `llama3.2:1b` is available
+- [ ] `.env` has `OLLAMA_MODEL=gemma3:270m`
+- [ ] Ollama is running and `gemma3:270m` is available
 - [ ] All three tests above pass
 
 ---
@@ -220,7 +220,7 @@ python -m pip install -r requirements-phase1.txt
 ```
 
 **`Config shows wrong model name`**
-Check your `.env` file — make sure it says `OLLAMA_MODEL=llama3.2:1b` not `gemma2:2b`
+Check your `.env` file — make sure it says `OLLAMA_MODEL=gemma3:270m` not `gemma2:2b`
 
 **`Ollama not reachable`**
 ```bash

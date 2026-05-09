@@ -2,7 +2,7 @@
 
 # ============================================================
 #  distributed-llm-load-balancer — Project Setup Script
-#  Model: llama3.2:1b via Ollama
+#  Model: gemma3:270m via Ollama
 #  CSE354 Distributed Computing — Ain Shams University
 # ============================================================
 
@@ -88,7 +88,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     # Ollama
     ollama_base_url: str = Field(default="http://localhost:11434")
-    ollama_model: str = Field(default="llama3.2:1b")
+    ollama_model: str = Field(default="gemma3:270m")
 
     # System
     num_workers: int = Field(default=4)
@@ -308,7 +308,7 @@ DOCUMENTS = [
     "P95 latency means 95% of requests complete within that time — a key performance metric.",
     "The GIL (Global Interpreter Lock) in Python prevents true parallel CPU-bound threading.",
     "Ollama is a tool for running large language models locally on your own hardware.",
-    "llama3.2 is a compact but capable LLM model from Meta that runs efficiently on consumer hardware.",
+    "gemma3 is a compact but capable LLM model from Google that runs efficiently on consumer hardware.",
     "Node failure detection can be implemented using periodic health checks or heartbeat signals.",
     "Load-aware routing selects workers based on both current load and historical response times.",
     "A semaphore limits the number of concurrent operations to prevent resource exhaustion.",
@@ -399,7 +399,7 @@ from common.config import config
 async def run_llm(query: str, context: str) -> str:
     """
     Send a prompt to Ollama's local REST API and return the response.
-    Model: llama3.2:1b running at localhost:11434
+    Model: gemma3:270m running at localhost:11434
     """
     prompt = f"""You are a helpful assistant. Use the context below to answer concisely.
 
@@ -988,7 +988,7 @@ EOF
 # ── .env ────────────────────────────────────────────────────
 cat > .env << 'EOF'
 OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.2:1b
+OLLAMA_MODEL=gemma3:270m
 NUM_WORKERS=4
 NUM_USERS=20
 LB_STRATEGY=round_robin
@@ -1000,7 +1000,7 @@ EOF
 # ── .env.example ────────────────────────────────────────────
 cat > .env.example << 'EOF'
 OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.2:1b
+OLLAMA_MODEL=gemma3:270m
 NUM_WORKERS=4
 NUM_USERS=20
 LB_STRATEGY=round_robin
@@ -1077,7 +1077,7 @@ python -m pip install -r requirements-phase1.txt
 
 # 3. Start Ollama
 ollama serve &
-ollama pull llama3.2:1b
+ollama pull gemma3:270m
 
 # 4. Run
 python main.py --strategy round_robin --users 10 --workers 4

@@ -50,6 +50,7 @@ class GPUWorker:
             )
 
         except Exception as e:
+            print(f"\n❌ [Worker {self.id}] Error processing request {request.id}: {e}")
             self.status.total_failed += 1
             latency = time.time() - start
             return Response(

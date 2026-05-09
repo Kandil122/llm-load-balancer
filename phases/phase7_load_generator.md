@@ -140,7 +140,7 @@ Expected output:
   Strategy : round_robin
   Workers  : 3
   Users    : 5
-  Model    : llama3.2:1b
+  Model    : gemma3:270m
 ============================================================
 
 📚 Initializing RAG knowledge base...

@@ -5,7 +5,7 @@
 
 ## What You're Building
 
-The bridge between your distributed system and the local `llama3.2:1b` model
+The bridge between your distributed system and the local `gemma3:270m` model
 running in Ollama. Every worker calls this to generate a real AI response
 using the RAG context retrieved in Phase 3.
 
@@ -25,7 +25,7 @@ Build prompt:
     │
     ▼
 HTTP POST → http://localhost:11434/api/generate
-  payload: { model: "llama3.2:1b", prompt: "...", stream: false }
+  payload: { model: "gemma3:270m", prompt: "...", stream: false }
     │
     ▼
 Ollama loads model into GTX 960M VRAM (4GB)
@@ -65,7 +65,7 @@ import time
 from llm.inference import run_llm
 
 async def test():
-    print('Sending single request to llama3.2:1b...')
+    print('Sending single request to gemma3:270m...')
     print('(Watch nvidia-smi in another terminal)')
     print()
 
@@ -88,7 +88,7 @@ asyncio.run(test())
 
 Expected output:
 ```
-Sending single request to llama3.2:1b...
+Sending single request to gemma3:270m...
 (Watch nvidia-smi in another terminal)
 
 Response (3.42s):
@@ -124,7 +124,7 @@ async def test():
     print()
 
     # Step 2: LLM
-    print('Step 2: Sending to llama3.2:1b...')
+    print('Step 2: Sending to gemma3:270m...')
     start = time.time()
     result = await run_llm(query, context)
     elapsed = time.time() - start
@@ -334,7 +334,7 @@ timeout=aiohttp.ClientTimeout(total=180)  # 3 minutes
 ```
 
 **Response is very slow (>30 seconds)**
-llama3.2:1b may be running on CPU. Check:
+gemma3:270m may be running on CPU. Check:
 ```bash
 nvidia-smi  # GPU-Util should be >0% during inference
 ```
@@ -342,14 +342,14 @@ If GPU-Util stays at 0%, Ollama is not using your GPU.
 Fix:
 ```bash
 # Check Ollama sees your GPU
-ollama run llama3.2:1b "hi" --verbose
+ollama run gemma3:270m "hi" --verbose
 # Look for: "GPU layers: 16" in output
 ```
 
 **`aiohttp.ClientError`**
 Make sure Ollama is running and the model is pulled:
 ```bash
-ollama list  # should show llama3.2:1b
+ollama list  # should show gemma3:270m
 ```
 
 ---
