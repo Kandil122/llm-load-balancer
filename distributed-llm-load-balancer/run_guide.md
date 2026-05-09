@@ -1,13 +1,49 @@
 # Distributed LLM Load Balancer — Docker Run Guide
 
-### Navigate to Project Directory First
+### 🚀 HOW TO RUN THE PROJECT
+
+#### 1. Navigate to Project Directory
 ```bash
 cd "/storage/UNIcourses/Distributed Computing/project/distributed-llm-load-balancer/distributed-llm-load-balancer/"
 ```
 
+#### 2. Activate Virtual Environment
+```bash
+source ../.venv/bin/activate
+```
+
+# Run the Main Script (Simulation or Distributed)
+The `main.py` script can run a local simulation OR act as a client for the Docker containers.
+
+```bash
+# 1. Local Simulation Mode (Default)
+python main.py --strategy round_robin --users 10 --workers 4
+
+# 2. Distributed Mode (Hits the Docker containers)
+# Make sure "docker compose up" is running first!
+python main.py --distributed --users 10 --workers 4
+
+# Run with all options
+python main.py --distributed --strategy [STRATEGY] --users [COUNT] --workers [COUNT] --no-fault --save-results
+```
+
+**Available Options:**
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--distributed` | Run against Docker containers (Master at localhost:8000) | `False` |
+| `--strategy` | Load balancing strategy: `round_robin`, `least_connections`, or `load_aware` | `round_robin` |
+
+| `--users` | Number of concurrent users to simulate | `20` (from .env) |
+| `--workers` | Number of worker instances to create | `4` (from .env) |
+| `--no-fault` | Disable the worker failure simulation | `False` |
+| `--save-results` | Save final metrics to a CSV file in `results/` | `False` |
+
 ---
 
-## 🏗️ BUILD COMMANDS
+## 🐳 DOCKER DISTRIBUTED MODE (Phase 9)
+Use these commands when you want to run the **true distributed version** where every worker is a separate container.
+
+### 🏗️ BUILD COMMANDS
 
 ### Build Everything (All Services)
 ```bash
@@ -251,6 +287,7 @@ curl -X POST http://localhost:8000/request \
 | **Restart all** | `sudo docker-compose restart` |
 | **Delete all (keep code)** | `sudo docker-compose down --rmi all -v` |
 | **Check status** | `sudo docker-compose ps` |
+| **Check all (stopped)** | `sudo docker-compose ps -a` |
 | **Check disk** | `df -h /` |
 | **Check Docker disk** | `sudo docker system df` |
 | **View logs** | `sudo docker-compose logs -f` |

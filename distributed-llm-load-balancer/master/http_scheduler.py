@@ -14,15 +14,21 @@ class HttpScheduler:
     _session = None
 
     @classmethod
-    def instance(cls):
+    def instance(cls, urls=None):
         if not cls._instance:
-            cls._instance = cls()
+            cls._instance = cls(urls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, urls=None):
         self._index = 0
         self._lock = asyncio.Lock()
-        self._alive = {i: True for i in range(len(WORKER_URLS))}
+        
+        # Default to internal Docker URLs if none provided
+        self.worker_urls = urls or [
+            f"http://worker-{i}:{8001 + i}"
+            for i in range(config.num_workers)
+        ]
+        self._alive = {i: True for i in range(len(self.worker_urls))}
 
     async def get_session(self):
         if self._session is None or self._session.closed:
@@ -36,7 +42,7 @@ class HttpScheduler:
             await self._session.close()
 
     async def handle(self, request_id: int, query: str) -> dict:
-        max_retries = len(WORKER_URLS)
+        max_retries = len(self.worker_urls)
         session = await self.get_session()
         
         for attempt in range(max_retries):
@@ -44,7 +50,7 @@ class HttpScheduler:
             if worker_idx is None:
                 return {"success": False, "error": "No alive workers"}
             
-            url = WORKER_URLS[worker_idx]
+            url = self.worker_urls[worker_idx]
             try:
                 async with session.post(
                     f"{url}/process",
@@ -55,13 +61,13 @@ class HttpScheduler:
                         if data.get("success"):
                             return data
                     
-                    # Non-200 = worker is unhealthy
+                    if self._alive[worker_idx]:
+                        print(f"[Scheduler] {url} returned {resp.status}, retrying...")
                     self._alive[worker_idx] = False
-                    print(f"[Scheduler] worker-{worker_idx} returned {resp.status}, retrying...")
             except Exception as e:
-                # Network error = container is truly down
+                if self._alive[worker_idx]:
+                    print(f"[Scheduler] {url} unreachable ({type(e).__name__}), retrying...")
                 self._alive[worker_idx] = False
-                print(f"[Scheduler] worker-{worker_idx} unreachable ({type(e).__name__}), retrying...")
         
         return {"success": False, "error": "All retry attempts exhausted"}
 
@@ -76,17 +82,24 @@ class HttpScheduler:
             return chosen
 
     async def heartbeat_loop(self):
-        """Poll /health on every worker every 2 seconds."""
+        """Poll /health on all workers in parallel for fast recovery."""
         while True:
             await asyncio.sleep(config.heartbeat_interval)
             session = await self.get_session()
-            for i, url in enumerate(WORKER_URLS):
+            
+            async def check_worker(i, url):
                 try:
                     async with session.get(
                         f"{url}/health",
                         timeout=aiohttp.ClientTimeout(total=1)
                     ) as r:
                         data = await r.json()
+                        was_dead = not self._alive[i]
                         self._alive[i] = data.get("alive", False)
+                        if was_dead and self._alive[i]:
+                            print(f"✨ [Scheduler] {url} has RECOVERED and is now online.")
                 except Exception:
                     self._alive[i] = False
+
+            # Run all checks at once
+            await asyncio.gather(*[check_worker(i, url) for i, url in enumerate(self.worker_urls)])
