@@ -1,13 +1,14 @@
 # metrics/dashboard.py
 import psutil
 import time
-from rich.console import Console
+from rich.console import Console, Group
 from rich.table import Table
 from rich.live import Live
 from rich.panel import Panel
 from rich.columns import Columns
+from rich.text import Text
 from rich import box
-from typing import List
+from typing import List, Optional
 from workers.gpu_worker import GPUWorker
 from metrics.collector import MetricsCollector
 
@@ -32,6 +33,34 @@ def get_gpu_stats() -> str:
     return "GPU: N/A (nvidia-smi not available)"
 
 
+def build_dashboard(workers: List[GPUWorker], collector: MetricsCollector = None,
+                   strategy: str = "", status_data: List[dict] = None, mode: str = "SIMULATION",
+                   current_counts: dict = None, events: List[str] = None) -> Group:
+    """Builds a group containing the status table and a notification panel."""
+
+    # 1. Build the Table
+    table = build_table(workers, collector, strategy, status_data, mode, current_counts)
+
+    # 2. Build the Notification Area
+    if not events:
+        events = ["System initialized. Monitoring workers..."]
+
+    # Keep only the last 3 events
+    recent_events = events[-3:]
+    event_text = Text()
+    for ev in recent_events:
+        if "RECOVERED" in ev or "online" in ev:
+            event_text.append(f"✨ {ev}\n", style="bold green")
+        elif "FAILED" in ev or "dead" in ev or "unreachable" in ev:
+            event_text.append(f"⚠️ {ev}\n", style="bold red")
+        else:
+            event_text.append(f"ℹ️ {ev}\n", style="dim")
+
+    notification_panel = Panel(event_text, title="[bold]Recent Events[/bold]", border_style="blue")
+
+    return Group(notification_panel, table)
+
+
 def build_table(workers: List[GPUWorker], collector: MetricsCollector = None,
                 strategy: str = "", status_data: List[dict] = None, mode: str = "SIMULATION",
                 current_counts: dict = None) -> Table:
@@ -41,7 +70,7 @@ def build_table(workers: List[GPUWorker], collector: MetricsCollector = None,
     table.add_column("Worker", style="bold")
     table.add_column("Status")
     table.add_column("Active Conn", justify="center")
-    table.add_column("Current", justify="center", style="cyan") # NEW COLUMN
+    table.add_column("Current", justify="center", style="cyan")
     table.add_column("Processed", justify="center")
     table.add_column("Avg Latency", justify="center")
     table.add_column("Failed", justify="center")
@@ -52,7 +81,7 @@ def build_table(workers: List[GPUWorker], collector: MetricsCollector = None,
         # Distributed/Hybrid Mode
         for d in status_data:
             if "error" in d:
-                table.add_row(d["url"].split("/")[-1], "[red]🔴 unreachable[/red]", "-", "-", "-", "-", "-")
+                table.add_row(d.get("url", "unknown").split("/")[-1], "[red]🔴 unreachable[/red]", "-", "-", "-", "-", "-")
                 continue
             
             w_id = d.get('worker_id')
@@ -61,7 +90,7 @@ def build_table(workers: List[GPUWorker], collector: MetricsCollector = None,
                 f"Worker-{w_id}",
                 status,
                 str(d.get("active_connections", 0)),
-                str(counts.get(w_id, 0)), # Display current run count
+                str(counts.get(w_id, 0)),
                 str(d.get("total_processed", 0)),
                 f"{d.get('avg_latency', 0):.2f}s",
                 str(d.get("total_failed", 0)),
