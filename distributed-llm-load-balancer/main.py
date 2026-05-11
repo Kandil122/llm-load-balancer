@@ -3,6 +3,8 @@ import asyncio
 import argparse
 import csv
 import os
+import time
+from datetime import datetime
 from common.config import config
 from workers.gpu_worker import GPUWorker
 from lb.round_robin import RoundRobinBalancer
@@ -33,8 +35,14 @@ def parse_args():
     parser.add_argument("--no-fault", action="store_true",
                         help="Disable fault simulation")
     parser.add_argument("--save-results", action="store_true",
-                        help="Save results to CSV")
+                        help="Save metrics to CSV")
+    parser.add_argument("--save-output", action="store_true",
+                        help="Save LLM text responses with timing to file")
     return parser.parse_args()
+
+
+def format_time(ts):
+    return datetime.fromtimestamp(ts).strftime('%H:%M:%S.%f')[:-3]
 
 
 async def run_distributed_load_test(collector, num_users, strategy, workers_count, no_fault):
@@ -47,7 +55,6 @@ async def run_distributed_load_test(collector, num_users, strategy, workers_coun
     print(f"🚀 [Distributed] Attempting to connect to Master at http://localhost:8000")
     
     events = ["System starting. Connecting to cluster..."]
-    # Initialize all as alive to detect first failure
     last_worker_states = {i: True for i in range(workers_count)} 
     
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120)) as session:
@@ -61,6 +68,8 @@ async def run_distributed_load_test(collector, num_users, strategy, workers_coun
         except Exception as e:
             events.append("Master container unreachable. Switching to HYBRID MODE.")
             use_hybrid = True
+
+        responses_data = []
 
         if use_hybrid:
             worker_urls = [f"http://localhost:{8001 + i}" for i in range(workers_count)]
@@ -103,11 +112,22 @@ async def run_distributed_load_test(collector, num_users, strategy, workers_coun
                 async def wrap_task(i):
                     async with sem:
                         query = SAMPLE_QUERIES[i % len(SAMPLE_QUERIES)]
+                        sent_at = time.time()
                         res = await scheduler.handle(i, query)
+                        recv_at = time.time()
+                        
                         if isinstance(res, dict) and res.get("success"):
                             collector.record_success(res.get("worker_id", 0), res.get("latency", 0))
+                            responses_data.append({
+                                "id": i, "query": query, "response": res.get("result", ""), 
+                                "worker": res.get("worker_id"), "sent_at": sent_at, "recv_at": recv_at, "lat": recv_at - sent_at
+                            })
                         else:
                             collector.record_failure(-1)
+                            responses_data.append({
+                                "id": i, "query": query, "response": "FAILED", 
+                                "worker": -1, "sent_at": sent_at, "recv_at": recv_at, "lat": recv_at - sent_at
+                            })
                         collector.record_request_done()
                         return res
 
@@ -127,14 +147,10 @@ async def run_distributed_load_test(collector, num_users, strategy, workers_coun
                     async with session.get("http://localhost:8000/workers/status", timeout=1) as r:
                         data = await r.json()
                         for i, d in enumerate(data):
-                            # Try to get worker_id, fallback to index
                             w_id = d.get("worker_id", i)
-                            # If unreachable, is_alive will be missing or False
                             alive = d.get("is_alive", False) if "error" not in d else False
-                            
                             if w_id in last_worker_states and last_worker_states[w_id] != alive:
-                                label = "RECOVERED" if alive else "FAILED"
-                                events.append(f"Worker {w_id} {label}!")
+                                events.append(f"Worker {w_id} {'RECOVERED' if alive else 'FAILED'}!")
                             last_worker_states[w_id] = alive
                         return data
                 except: return []
@@ -158,15 +174,26 @@ async def run_distributed_load_test(collector, num_users, strategy, workers_coun
                     async with sem:
                         url = "http://localhost:8000/request"
                         query = SAMPLE_QUERIES[i % len(SAMPLE_QUERIES)]
+                        sent_at = time.time()
                         try:
                             async with session.post(url, json={"id": i, "query": query}) as resp:
+                                recv_at = time.time()
                                 if resp.status == 200:
                                     data = await resp.json()
                                     collector.record_success(data.get("worker_id", 0), data.get("latency", 0))
+                                    responses_data.append({
+                                        "id": i, "query": query, "response": data.get("result", ""), 
+                                        "worker": data.get("worker_id"), "sent_at": sent_at, "recv_at": recv_at, "lat": recv_at - sent_at
+                                    })
                                     collector.record_request_done()
                                     return data
                         except: pass
+                        recv_at = time.time()
                         collector.record_failure(-1)
+                        responses_data.append({
+                            "id": i, "query": query, "response": "FAILED", 
+                            "worker": -1, "sent_at": sent_at, "recv_at": recv_at, "lat": recv_at - sent_at
+                        })
                         collector.record_request_done()
                         return None
 
@@ -176,6 +203,7 @@ async def run_distributed_load_test(collector, num_users, strategy, workers_coun
                 await update_task
                 
     collector.stop_timer()
+    return responses_data
 
 
 async def main():
@@ -193,10 +221,11 @@ async def main():
     # Step 1: Initialize Metrics
     collector = MetricsCollector(num_workers=args.workers)
     workers = []
+    final_outputs = []
 
     if args.distributed:
         # Distributed Mode with Failover
-        await run_distributed_load_test(collector, args.users, args.strategy, args.workers, args.no_fault)
+        final_outputs = await run_distributed_load_test(collector, args.users, args.strategy, args.workers, args.no_fault)
     else:
         # Simulation Mode: Local Workers
         from metrics.dashboard import build_dashboard, console
@@ -239,7 +268,19 @@ async def main():
                     from client.load_generator import SAMPLE_QUERIES, Request
                     query = SAMPLE_QUERIES[i % len(SAMPLE_QUERIES)]
                     request = Request(id=i, query=query)
+                    sent_at = time.time()
                     resp = await scheduler.handle_request(request)
+                    recv_at = time.time()
+                    if resp.success:
+                        final_outputs.append({
+                            "id": i, "query": query, "response": resp.result, "worker": resp.worker_id,
+                            "sent_at": sent_at, "recv_at": recv_at, "lat": recv_at - sent_at
+                        })
+                    else:
+                        final_outputs.append({
+                            "id": i, "query": query, "response": "FAILED", "worker": -1,
+                            "sent_at": sent_at, "recv_at": recv_at, "lat": recv_at - sent_at
+                        })
                     collector.record_request_done()
                     return resp
 
@@ -254,17 +295,36 @@ async def main():
     # Step 2: Print summary (for both modes)
     print_summary(workers, collector, args.strategy)
 
-    # Step 3: Save results
+    # Step 3: Save results (Metrics)
     if args.save_results:
         os.makedirs("results", exist_ok=True)
-        filename = f"results/{'dist' if args.distributed else 'sim'}_{args.strategy}_{args.users}users.csv"
+        filename = f"results/{'dist' if args.distributed else 'sim'}_{args.strategy}_{args.users}users_metrics.csv"
         summary = collector.get_summary()
         with open(filename, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(["metric", "value"])
             for k, v in summary.items():
                 writer.writerow([k, v])
-        print(f"\n💾 Results saved to {filename}")
+        print(f"\n💾 Metrics saved to {filename}")
+
+    # Step 4: Save outputs (LLM Responses + Tracing)
+    if args.save_output:
+        os.makedirs("results", exist_ok=True)
+        filename = f"results/{'dist' if args.distributed else 'sim'}_{args.strategy}_{args.users}users_outputs.csv"
+        with open(filename, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["request_id", "query", "worker_id", "sent_at", "received_at", "total_latency", "llm_response"])
+            for out in sorted(final_outputs, key=lambda x: x['id']):
+                writer.writerow([
+                    out['id'], 
+                    out['query'], 
+                    out['worker'], 
+                    format_time(out['sent_at']), 
+                    format_time(out['recv_at']), 
+                    f"{out['lat']:.3f}s",
+                    out['response']
+                ])
+        print(f"💾 Detailed LLM Tracing saved to {filename}")
 
 
 if __name__ == "__main__":
